@@ -8,6 +8,9 @@
 </head> 
 <body>
     <script>
+
+var temp = 0;
+
         var scene, camera, renderer;
         var geometry, material, mesh;
 
@@ -17,15 +20,45 @@
             y: 0
         };
 
+        var zoom = 1;
+        
        
         var windowHalfX = window.innerWidth / 2;
         var windowHalfY = window.innerHeight / 2;
 
-        var finalRotationY
+        var finalRotationY;
 
 
         init();
 
+        //THIS IS FOR ZOOMING
+        // var fov = camera.fov;
+
+        // var canvas = renderer.domElement;
+        // if (canvas.addEventListener) {
+        //       // IE9, Chrome, Safari, Opera
+        //       canvas.addEventListener("mousewheel", MouseWheelHandler, false);
+        //       // Firefox
+        //       canvas.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
+        // }
+        // // IE 6/7/8
+        // else canvas.attachEvent("onmousewheel", MouseWheelHandler);
+
+
+
+        // function MouseWheelHandler(e) {
+
+        //     // cross-browser wheel delta
+        //     var e = window.event || e; // old IE support
+        //     var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+        //     zoom += delta*0.05;
+
+        //     camera.fov = fov * zoom;
+        //     camera.updateProjectionMatrix();
+        //     animate();
+
+        // }
+        //FIN ZOOM
 
 
 
@@ -62,11 +95,26 @@
             isDragging = false;
         });
 
+        $(document).bind('mousewheel', function(e){
+            if(e.originalEvent.wheelDelta /120 > 0) {
+                $(this).text('scrolling up !');
+            } else {
+                $(this).text('scrolling down !');
+            }
+        });
+
         animate();
 
         function init() {
 
             scene = new THREE.Scene();
+
+            // pas sur si ça marche
+            // var light = new THREE.PointLight( 0xffffff, 1 );
+            //     light.position.set( 2, 5, 1 );
+            //     light.position.multiplyScalar( 30 );
+            //     scene.add( light );
+            //fin lumiere
 
             group = new THREE.Object3D();
 
@@ -74,36 +122,51 @@
                 window.innerWidth / window.innerHeight, 1, 10000 );
             camera.position.z = 1000;
 
-            geometry = new THREE.BoxGeometry( 200, 200, 200 );
-            material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-
-            mesh = new THREE.Mesh( geometry, material );
-            //scene.add( mesh );
-
             // prepare loader and load the model
             var oLoader = new THREE.OBJLoader();
-            oLoader.load('obj/crown.obj', function(object, materials) {
+            oLoader.load('obj/ring.obj', function(object, materials) {
+
+
+              texture = THREE.ImageUtils.loadTexture( "img/gold_texture.jpg" );
+              texture.wrapS = THREE.RepeatWrapping; 
+              texture.wrapT = THREE.RepeatWrapping;
+             
+              material = new THREE.MeshBasicMaterial({ map : texture });
 
               // var material = new THREE.MeshFaceMaterial(materials);
-              var material2 = new THREE.MeshLambertMaterial({ color: 0xa65e00 });
-              material2 = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+              // var material2 = new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture('') } );
+              
 
               object.traverse( function(child) {
                 if (child instanceof THREE.Mesh) {
 
+                    if(child.name=="Cone02_6") {
+                        var texture2 = THREE.ImageUtils.loadTexture( "img/diamond_texture.jpg" );
+                        child.material = new THREE.MeshBasicMaterial({ map : texture2 });
+
+                    } else {
+                        child.material = material;
+                    }
+
+                    console.log(child);
+
                   // apply custom material
-                  child.material = material2;
+                  
+                  child.material.side = THREE.DoubleSide;
+                  child.material.blending = THREE.NoBlending;
 
                   // enable casting shadows
                   child.castShadow = true;
                   child.receiveShadow = true;
+
                 }
               });
+
 
               object.position.x = 0;
               object.position.y = 0;
               object.position.z = 0;
-              object.scale.set(8, 8, 8);
+              object.scale.set(0.1, 0.1, 0.1);
               group.add(object)
               scene.add(group);
 
