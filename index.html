@@ -1,44 +1,139 @@
 <html>
 <head>
   <script src="js/three.min.js"></script>
+  <script src="js/OBJLoader.js"></script>
+  <script src="js/jquery-3.1.0.min.js"></script>
+  
+
 </head> 
 <body>
     <script>
         var scene, camera, renderer;
         var geometry, material, mesh;
 
+        var isDragging = false;
+        var previousMousePosition = {
+            x: 0,
+            y: 0
+        };
+
+       
+        var windowHalfX = window.innerWidth / 2;
+        var windowHalfY = window.innerHeight / 2;
+
+        var finalRotationY
+
+
         init();
+
+
+
+
+        $(renderer.domElement).on('mousedown', function(e) {
+            isDragging = true;
+        })
+        .on('mousemove', function(e) {
+            //console.log(e);
+            var deltaMove = {
+                x: e.offsetX-previousMousePosition.x,
+                y: e.offsetY-previousMousePosition.y
+            };
+
+            if(isDragging) {
+                    
+                var deltaRotationQuaternion = new THREE.Quaternion()
+                    .setFromEuler(new THREE.Euler(
+                        toRadians(deltaMove.y * 1),
+                        toRadians(deltaMove.x * 1),
+                        0,
+                        'XYZ'
+                    ));
+                
+                group.quaternion.multiplyQuaternions(deltaRotationQuaternion, group.quaternion);
+            }
+            
+            previousMousePosition = {
+                x: e.offsetX,
+                y: e.offsetY
+            };
+        });
+
+        $(document).on('mouseup', function(e) {
+            isDragging = false;
+        });
+
         animate();
 
         function init() {
 
             scene = new THREE.Scene();
 
-            camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+            group = new THREE.Object3D();
+
+            camera = new THREE.PerspectiveCamera( 75, 
+                window.innerWidth / window.innerHeight, 1, 10000 );
             camera.position.z = 1000;
 
             geometry = new THREE.BoxGeometry( 200, 200, 200 );
             material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 
             mesh = new THREE.Mesh( geometry, material );
-            scene.add( mesh );
+            //scene.add( mesh );
+
+            // prepare loader and load the model
+            var oLoader = new THREE.OBJLoader();
+            oLoader.load('obj/crown.obj', function(object, materials) {
+
+              // var material = new THREE.MeshFaceMaterial(materials);
+              var material2 = new THREE.MeshLambertMaterial({ color: 0xa65e00 });
+              material2 = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+
+              object.traverse( function(child) {
+                if (child instanceof THREE.Mesh) {
+
+                  // apply custom material
+                  child.material = material2;
+
+                  // enable casting shadows
+                  child.castShadow = true;
+                  child.receiveShadow = true;
+                }
+              });
+
+              object.position.x = 0;
+              object.position.y = 0;
+              object.position.z = 0;
+              object.scale.set(8, 8, 8);
+              group.add(object)
+              scene.add(group);
+
+                // mesh = new THREE.Mesh( object, material );
+                // group.add(mesh);
+                // scene.add( group );
+
+            });
 
             renderer = new THREE.WebGLRenderer();
             renderer.setSize( window.innerWidth, window.innerHeight );
 
             document.body.appendChild( renderer.domElement );
-
         }
+
 
         function animate() {
 
             requestAnimationFrame( animate );
-
-            mesh.rotation.x += 0.01;
-            mesh.rotation.y += 0.02;
-
             renderer.render( scene, camera );
+        }
 
+
+
+        function toRadians(angle) {
+            return angle * (Math.PI / 180);
+        }
+
+        function toDegrees(angle) {
+            return angle * (180 / Math.PI);
         }
 
     </script>
