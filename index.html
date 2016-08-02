@@ -60,6 +60,35 @@ var temp = 0;
         // }
         //FIN ZOOM
 
+        var switcher = true;
+
+
+		document.onkeypress = function (e) {
+		    e = e || window.event;
+
+
+				//press q
+		    if(e.keyCode == 113) {
+		    	group.traverse( function(child) {
+                if (child instanceof THREE.Mesh) {
+
+                    if(child.name=="Cone02_6") {
+                        var texture2 = THREE.ImageUtils.loadTexture( switcher ? "img/ruby_texture.jpg":"img/diamond_texture.jpg" );
+                        switcher = !switcher;
+                        child.material = new THREE.MeshBasicMaterial({ map : texture2 });
+
+                    } else {
+                        child.material = material;
+                    }
+
+                  // apply custom material
+                  
+                  child.material.side = THREE.DoubleSide;
+                  child.material.blending = THREE.NoBlending;
+                }
+              });
+		    }
+		}
 
 
         $(renderer.domElement).on('mousedown', function(e) {
@@ -147,8 +176,6 @@ var temp = 0;
                     } else {
                         child.material = material;
                     }
-
-                    console.log(child);
 
                   // apply custom material
                   
